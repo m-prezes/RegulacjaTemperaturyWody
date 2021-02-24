@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Projekt automatyka</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" ></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+
+</head>
+<body>
+
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+
+
+
+<!----------- Nav --------------->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Regulacja temperatury wody w zbiorniku</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+
+<!------ Cechy modelu ---------->
+    <div class="container-fluid info">
+        <div class="row wrapper">
+            <div class="col-lg-4 model-wrapper">
+                <div class="img-model">
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="features">
+                    <h3>Własności obiektu:</h3>
+                    <form class="add-form" method="POST" action="{{ url_for('index') }}" style="text-align: right">
+                        Maksymalne natężenie dopływu drugiej pompy [L/s]: <input type="number" name="Q2_max" value="{{Q2_max}}" style="width: 80px" min="0" max="1000" step="0.5"/>
+                        <br>
+                        Temperatura wody doprowadzanej z drugiej pompy [&#186C]: <input type="number" name="T2" value="{{T2}}" style="width: 80px" min="0" max="100" step="0.5"/>
+                        <br>
+                        Natężenie dopływu pierwszej pompy [L/s]: <input type="number" name="Q1" value="{{Q1}}" style="width: 80px" min="0" max="1000" step="0.5"/>
+                        <br>
+                        Temperatura wody doprowadzanej z pierwszej pompy [&#186C]: <input type="number" name="T1" value="{{T1}}" style="width: 80px" min="0" max="100" step="0.5"/>
+                        <br>
+                        Objętość wody w zbiorniku [L]: <input type="number" name="V" value="{{V}}" style="width: 80px" min="0" step="5"/>
+                        <br>
+                        Czas trwania symulacji [min]: <input type="number" name="czas_symulacji" value="{{czas_symulacji}}" style="width: 80px" min="0" step="1"/>
+                        <br>
+                        <hr>
+                        <h4 style="text-align: center">Anomalie:</h4>
+                        Moment wystąpienia anomalii [min]: <input type="number" name="czas_anomalii" value="{{czas_anomalii}}" style="width: 80px" min="0" step="1"/>
+                        <br>
+                        Temperatura wody w zbiorniku [&#186C]: <input type="number" name="T_anomalii" value="{{T_anomalii}}" style="width: 80px" min="0" max="100"  step="0.5"/>
+                        <br>
+                        <hr>
+                        <h4 style="text-align: center">Wartość zadana temperatury wody w zbiorniku [&#186C]:</h4>
+                        <input type="number" name="T_zadana" value="{{wartosc_zadana}}" min="0" max=100" step="0.5" />
+                        <button class="btn btn-secondary" type="submit">Start symulacji</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+<!--------- Wskaźnik przeregulowania ----------------->
+    <div class="container-fluid options">
+        <div class="wskaznik options">
+            <div class="wsk"><h3>Wskaźnik przeregulowania: {{ wskaznik | safe  }}%</h3></div>
+        </div>
+    </div>
+
+<!--------- Wykresy ---------------->
+
+    <hr>
+    <div class="container-fluid">
+        <div class="container plot-container">
+            <div class="chart" id="graph_1">
+            <script>
+                var data = [ {{ plot |safe }}, {{ plot2 |safe }}]
+                var layout = {
+                    title:{ text:'Przebiegi zmian temperatury wody w zbiorniku i temperatury zadanej'},
+                    xaxis:{title:'Czas[min]'},
+                    yaxis:{title:'Temperatura [ºC]'}
+                };
+                var config = {responsive:true};
+                Plotly.plot('graph_1',data,layout,config);
+            </script>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="container plot-container">
+            <div class="chart" id="graph_2">
+            <script>
+                var data = [ {{ plot3 |safe }}, {{ plot4 |safe }}]
+                var layout = {
+                    title:{text: 'Przebiegi zmian temepratury wody strumienia dopływu i temperatury wody w zbiorniku'},
+                    xaxis:{title:'Czas[min]'},
+                    yaxis:{title:'Temperatura [ºC]'}
+                };
+                var config = {responsive:true};
+                Plotly.plot('graph_2',data,layout,config);
+            </script>
+            </div>
+        </div>
+
+          <hr>
+
+        <div class="container plot-container">
+            <div class="chart" id="graph_3">
+            <script>
+                var data = [ {{ plot5 |safe }}, {{ plot6 |safe }}]
+                var layout = {
+                title: {text:'Wykresy sygnałów PID oraz u'},
+                    xaxis:{title:'Czas[min]'},
+                    yaxis:{title:'Moc sygnału'}
+                };
+                var config = {responsive:true};
+                Plotly.plot('graph_3',data,layout,config);
+            </script>
+            </div>
+        </div>
+
+          <hr>
+    </div>
+
+
+
+</body>
+</html>
